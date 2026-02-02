@@ -59,19 +59,38 @@ clawdhub install hippocampus
 
 ## Brain Dashboard
 
-Visual dashboard showing all installed brain skills:
+Visual dashboard showing all installed brain skills.
 
+### Access the Dashboard
+
+**Option 1: Auto-generated on install**
 ```bash
-./scripts/generate-dashboard.sh
-open ~/.openclaw/workspace/brain-dashboard.html
+./install.sh  # Creates brain-dashboard.html automatically
 ```
 
-Auto-detects other brain skills (amygdala, VTA) and shows:
-- 🧠 Memory tab with stats and top memories
-- 🎭 Emotions tab (if amygdala installed)
-- ⭐ Drive tab (if VTA installed)
+**Option 2: Generate manually**
+```bash
+./scripts/generate-dashboard.sh
+```
 
-Regenerates automatically on install and cron runs.
+**Option 3: Open in browser**
+```bash
+# macOS
+open ~/.openclaw/workspace/brain-dashboard.html
+
+# Linux
+xdg-open ~/.openclaw/workspace/brain-dashboard.html
+
+# Or open directly in browser:
+# file:///home/USER/.openclaw/workspace/brain-dashboard.html
+```
+
+### Features
+- 🧠 Memory tab with stats and top memories
+- 🎭 Emotions tab (if amygdala installed, or install prompt)
+- ⭐ Drive tab (if VTA installed, or install prompt)
+- Reads avatar/name from `IDENTITY.md`
+- **Auto-regenerates** on every cron run (stays fresh)
 
 ## How It Works
 
