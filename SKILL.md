@@ -89,6 +89,21 @@ $WORKSPACE/
 | `sync-core.sh` | Generate HIPPOCAMPUS_CORE.md |
 | `consolidate.sh` | Weekly review helper |
 | `reflect.sh` | Self-reflection prompts |
+| `generate-dashboard.sh` | Generate unified brain dashboard HTML |
+
+## Brain Dashboard
+
+Visual dashboard showing all installed brain skills:
+
+```bash
+./scripts/generate-dashboard.sh
+open ~/.openclaw/workspace/brain-dashboard.html
+```
+
+- **Auto-detects** other brain skills (amygdala, VTA)
+- Shows install prompts for missing skills
+- Regenerates on install and cron runs
+- Reads avatar/name from `IDENTITY.md`
 
 All scripts use `$WORKSPACE` environment variable (default: `~/.openclaw/workspace`).
 

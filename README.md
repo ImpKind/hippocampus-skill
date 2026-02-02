@@ -57,6 +57,22 @@ clawdhub install hippocampus
 ./scripts/decay.sh
 ```
 
+## Brain Dashboard
+
+Visual dashboard showing all installed brain skills:
+
+```bash
+./scripts/generate-dashboard.sh
+open ~/.openclaw/workspace/brain-dashboard.html
+```
+
+Auto-detects other brain skills (amygdala, VTA) and shows:
+- 🧠 Memory tab with stats and top memories
+- 🎭 Emotions tab (if amygdala installed)
+- ⭐ Drive tab (if VTA installed)
+
+Regenerates automatically on install and cron runs.
+
 ## How It Works
 
 ```
