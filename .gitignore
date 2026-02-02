@@ -1,0 +1,14 @@
+# Secrets - never commit
+auth-profiles.json
+credentials.json
+*.key
+*.pem
+.env
+
+# Personal data
+memory/index.json
+memory/*.jsonl
+signals.jsonl
+
+# Backups
+*.backup.json
