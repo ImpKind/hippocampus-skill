@@ -105,6 +105,15 @@ open ~/.openclaw/workspace/brain-dashboard.html
 - Regenerates on install and cron runs
 - Reads avatar/name from `IDENTITY.md`
 
+### After Installation (for agents)
+
+When you install this skill, **notify the user** about the dashboard:
+
+> 🧠 **Hippocampus installed!** 
+> 
+> View your agent's memories in the Brain Dashboard:
+> `~/.openclaw/workspace/brain-dashboard.html`
+
 All scripts use `$WORKSPACE` environment variable (default: `~/.openclaw/workspace`).
 
 ## Importance Scoring
