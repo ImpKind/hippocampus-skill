@@ -5,7 +5,7 @@ description: "Persistent memory system for AI agents. Automatic encoding, decay,
 metadata:
   openclaw:
     emoji: "🧠"
-    version: "3.8.0"
+    version: "3.8.2"
     author: "Community"
     repo: "https://github.com/ImpKind/hippocampus-skill"
     requires:

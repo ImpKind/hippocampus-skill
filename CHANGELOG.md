@@ -2,7 +2,7 @@
 
 All notable changes to the Hippocampus Memory skill.
 
-## [3.8.0] - 2026-02-05
+## [3.8.2] - 2026-02-05
 
 ### Added
 - **Multi-session support**: `preprocess.sh` now scans ALL session files, not just one
