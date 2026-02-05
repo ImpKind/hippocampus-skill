@@ -61,5 +61,5 @@ Add truly important insights to the main long-term memory file. This is the high
 ---
 
 ## Consolidation Cron
-Runs: Saturdays 9 PM (Europe/Warsaw)
-Gives me time to consolidate before Sunday's self-reflection.
+Runs: Weekly (e.g., Saturday evening in your timezone)
+Gives time to consolidate before a weekly self-reflection.

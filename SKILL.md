@@ -1,10 +1,11 @@
 ---
-name: hippocampus
-description: "Background memory organ for AI agents. Runs separately from the main agent—encoding, decaying, and reinforcing memories automatically. Just like the real hippocampus in your brain. Based on Stanford Generative Agents (Park et al., 2023)."
+name: hippocampus-memory
+title: "Hippocampus - Memory System"
+description: "Persistent memory system for AI agents. Automatic encoding, decay, and semantic reinforcement — just like the hippocampus in your brain. Based on Stanford Generative Agents (Park et al., 2023)."
 metadata:
   openclaw:
     emoji: "🧠"
-    version: "3.7.1"
+    version: "3.8.0"
     author: "Community"
     repo: "https://github.com/ImpKind/hippocampus-skill"
     requires:
@@ -16,7 +17,7 @@ metadata:
         instructions: "./install.sh --with-cron"
 ---
 
-# Hippocampus Skill
+# Hippocampus - Memory System
 
 > "Memory is identity. This skill is how I stay alive."
 

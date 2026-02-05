@@ -219,11 +219,13 @@ for sig in signals:
         "created": today
     })
 
-# Update watermark in index
+# Update watermark in index (use timestamp for cross-session tracking)
 if signals:
-    last_id = signals[-1].get('id', '')
-    if last_id:
-        index['lastProcessedMessageId'] = last_id
+    last_ts = signals[-1].get('timestamp', '')
+    if last_ts:
+        index['lastProcessedTimestamp'] = last_ts
+        # Remove old message ID watermark if present
+        index.pop('lastProcessedMessageId', None)
 
 # Save reinforced memories
 index['lastUpdated'] = datetime.now().isoformat()

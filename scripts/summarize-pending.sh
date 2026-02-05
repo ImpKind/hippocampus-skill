@@ -1,67 +1,148 @@
 #!/bin/bash
-# summarize-pending.sh — Sub-agent summarization task
+# summarize-pending.sh — Memory summarization (sub-agent task)
 #
-# This script is meant to be run BY a sub-agent (via sessions_spawn).
-# It reads pending-memories.json and outputs instructions for summarization.
+# Processes pending signals in BATCHES to avoid context overflow.
+# Each run processes up to BATCH_SIZE signals, then re-runs if more remain.
 #
-# Usage: Called by sub-agent task
+# Usage: ./summarize-pending.sh [--batch-size N]
+#
+# Environment:
+#   BATCH_SIZE - Signals per batch (default: 30)
+
+set -e
 
 WORKSPACE="${WORKSPACE:-$HOME/.openclaw/workspace}"
 PENDING_FILE="$WORKSPACE/memory/pending-memories.json"
 INDEX_FILE="$WORKSPACE/memory/index.json"
 SKILL_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+BATCH_SIZE="${BATCH_SIZE:-30}"
 
-echo "🧠 HIPPOCAMPUS SUMMARIZATION TASK"
-echo "=================================="
-echo ""
+# Parse args
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --batch-size) BATCH_SIZE="$2"; shift 2 ;;
+        *) shift ;;
+    esac
+done
 
 if [ ! -f "$PENDING_FILE" ]; then
-    echo "No pending memories file found."
+    echo "No pending memories file found. Nothing to summarize."
     exit 0
 fi
 
-PENDING_COUNT=$(python3 -c "import json; d=json.load(open('$PENDING_FILE')); print(len(d.get('pending',[])))" 2>/dev/null || echo "0")
+# Extract batch and prepare for processing
+python3 << PYTHON
+import json
+import os
 
-if [ "$PENDING_COUNT" -eq 0 ]; then
-    echo "No pending memories to process."
-    exit 0
-fi
+WORKSPACE = os.environ.get("WORKSPACE", "$WORKSPACE")
+PENDING_FILE = "$PENDING_FILE"
+INDEX_FILE = "$INDEX_FILE"
+BATCH_SIZE = $BATCH_SIZE
 
-echo "Found $PENDING_COUNT memories to summarize."
-echo ""
-echo "=== PENDING MEMORIES ==="
-cat "$PENDING_FILE"
-echo ""
-echo "=== END PENDING ==="
-echo ""
-echo "INDEX FILE: $INDEX_FILE"
-echo "PENDING FILE: $PENDING_FILE"
-echo ""
-echo "=== INSTRUCTIONS ==="
-echo "For each pending memory:"
-echo "1. Read the 'raw_text' field"
-echo "2. Create a CONCISE summary (max 100 chars)"
-echo "3. Format: Start with 'User' or 'Agent' as subject"
-echo "4. Keep: facts, preferences, emotions, decisions, insights"
-echo "5. Remove: filler, metadata, timestamps, routine confirmations"
-echo ""
-echo "Examples of GOOD summaries:"
-echo "  - User prefers local-only solutions, avoids third-party storage"
-echo "  - User decided to use sub-agent approach for summarization"
-echo "  - Agent discovered encoding wasn't summarizing — just copying raw text"
-echo "  - Agent fixed bug: changed sorting method to pick correct session file"
-echo ""
-echo "Examples of BAD summaries (too verbose/raw):"
-echo "  - User said: what about the hippocampus_core - can you check..."
-echo "  - Agent noted: Found the bug! \`\`\`python def extract_content..."
-echo ""
-echo "After summarizing, update index.json:"
-echo "  - Add each memory to 'memories' array"
-echo "  - Use the 'id', 'domain', 'category', 'score' from pending"
-echo "  - Set 'content' to your summary"
-echo "  - Set 'importance' to the 'score' value"
-echo "  - Set 'lastAccessed' and 'created' to today"
-echo "  - Set 'timesReinforced' to 1"
-echo ""
-echo "Then delete $PENDING_FILE"
-echo "Then run: $SKILL_DIR/scripts/sync-core.sh"
+with open(PENDING_FILE, 'r') as f:
+    data = json.load(f)
+
+pending = data.get("pending", [])
+if not pending:
+    print("No pending signals.")
+    exit(0)
+
+# Get current memory count for next ID
+if os.path.exists(INDEX_FILE):
+    with open(INDEX_FILE, 'r') as f:
+        index = json.load(f)
+    next_id = len(index.get("memories", [])) + 1
+else:
+    next_id = 1
+
+# Filter obvious noise
+filtered = []
+for p in pending:
+    text = p.get("raw_text", "").strip()
+    if len(text) < 20:
+        continue
+    noise = ["HEARTBEAT_OK", "NO_REPLY", "Exec completed", "function_results", 
+             "antml:", "sessionId", "Successfully wrote", "Command still running",
+             "process still running", "tool:", "status:", "Command exited"]
+    if any(n in text for n in noise):
+        continue
+    filtered.append(p)
+
+total_filtered = len(filtered)
+total_batches = (total_filtered + BATCH_SIZE - 1) // BATCH_SIZE
+
+# Sort by importance (high first)
+filtered.sort(key=lambda x: x.get("score", 0.5), reverse=True)
+
+# Take current batch
+batch = filtered[:BATCH_SIZE]
+remaining = filtered[BATCH_SIZE:]
+
+print(f"📊 BATCH PROCESSING")
+print(f"   Total signals: {len(pending)} raw → {total_filtered} filtered")
+print(f"   This batch: {len(batch)} signals")
+print(f"   Remaining: {len(remaining)} signals ({total_batches} total batches)")
+print(f"   Next memory ID: mem_{next_id:03d}")
+print()
+print(f"📁 INDEX_FILE: {INDEX_FILE}")
+print(f"📁 PENDING_FILE: {PENDING_FILE}")
+print()
+print("="*60)
+print(f"BATCH SIGNALS ({len(batch)} items, sorted by importance)")
+print("="*60)
+
+for i, p in enumerate(batch):
+    text = p.get("raw_text", "")[:300].replace('\n', ' ').strip()
+    score = p.get("score", 0.5)
+    print(f"\n[{i+1}] importance={score:.2f}")
+    print(f"{text}")
+
+print()
+print("="*60)
+
+# Update pending file with remaining signals
+if remaining:
+    data["pending"] = remaining
+    with open(PENDING_FILE, 'w') as f:
+        json.dump(data, f, indent=2)
+    print(f"\n⏳ Updated pending file with {len(remaining)} remaining signals")
+    print(f"   Run summarize-pending.sh again after this batch to continue")
+else:
+    print(f"\n✅ This is the FINAL batch - delete pending file after processing")
+
+PYTHON
+
+cat << 'INSTRUCTIONS'
+
+YOUR TASK: Create memory summaries from THIS BATCH of signals.
+
+RULES:
+1. Read each signal, extract FACTS worth remembering
+2. Create concise summaries (max 80 chars each)
+3. Start with "User..." for user facts, "Agent..." for agent facts
+4. Skip routine chatter, code output, questions without answers
+5. Be SELECTIVE: 3-10 good memories per batch is normal
+
+MEMORY FORMAT:
+{
+  "id": "mem_NNN",
+  "domain": "user|self|relationship|world",
+  "category": "preferences|patterns|context|emotions|decisions|facts|work",
+  "content": "Concise fact here",
+  "importance": 0.7,
+  "created": "YYYY-MM-DD",
+  "lastAccessed": "YYYY-MM-DD",
+  "timesReinforced": 1,
+  "keywords": []
+}
+
+STEPS:
+1. Read INDEX_FILE, add new memories to "memories" array
+2. Write updated index back
+3. If this was the FINAL batch: delete PENDING_FILE and run sync-core.sh
+4. If more batches remain: report what you added, then run this script again
+
+GOOD: "User prefers local solutions" | "Agent fixed encoding bug"
+BAD: "User asked about X" | "Agent ran the script"
+INSTRUCTIONS

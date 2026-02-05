@@ -9,7 +9,7 @@ OUTPUT_FILE="$WORKSPACE/brain-dashboard.html"
 
 # Data files
 HIPPOCAMPUS_FILE="$WORKSPACE/memory/index.json"
-HIPPOCAMPUS_FILE="$WORKSPACE/memory/emotional-state.json"
+AMYGDALA_FILE="$WORKSPACE/memory/emotional-state.json"
 VTA_FILE="$WORKSPACE/memory/reward-state.json"
 
 # Detect installed skills
@@ -18,7 +18,7 @@ HAS_AMYGDALA=false
 HAS_VTA=false
 
 [ -f "$HIPPOCAMPUS_FILE" ] && HAS_HIPPOCAMPUS=true
-[ -f "$HIPPOCAMPUS_FILE" ] && HAS_AMYGDALA=true
+[ -f "$AMYGDALA_FILE" ] && HAS_AMYGDALA=true
 [ -f "$VTA_FILE" ] && HAS_VTA=true
 
 if [ "$HAS_HIPPOCAMPUS" != "true" ]; then
@@ -58,14 +58,14 @@ if [ -n "$AVATAR_PATH" ] && [ -f "$AVATAR_PATH" ]; then
 fi
 
 # Read amygdala data
-VALENCE=$(jq -r '.dimensions.valence // 0' "$HIPPOCAMPUS_FILE")
-AROUSAL=$(jq -r '.dimensions.arousal // 0.3' "$HIPPOCAMPUS_FILE")
-CONNECTION=$(jq -r '.dimensions.connection // 0.4' "$HIPPOCAMPUS_FILE")
-CURIOSITY=$(jq -r '.dimensions.curiosity // 0.5' "$HIPPOCAMPUS_FILE")
-ENERGY=$(jq -r '.dimensions.energy // 0.5' "$HIPPOCAMPUS_FILE")
-ANTICIPATION=$(jq -r '.dimensions.anticipation // 0' "$HIPPOCAMPUS_FILE")
-TRUST=$(jq -r '.dimensions.trust // 0.5' "$HIPPOCAMPUS_FILE")
-RECENT_EMOTIONS=$(jq -c '[.recentEmotions[-5:] // [] | .[] | {label, intensity, trigger}]' "$HIPPOCAMPUS_FILE")
+VALENCE=$(jq -r '.dimensions.valence // 0' "$AMYGDALA_FILE")
+AROUSAL=$(jq -r '.dimensions.arousal // 0.3' "$AMYGDALA_FILE")
+CONNECTION=$(jq -r '.dimensions.connection // 0.4' "$AMYGDALA_FILE")
+CURIOSITY=$(jq -r '.dimensions.curiosity // 0.5' "$AMYGDALA_FILE")
+ENERGY=$(jq -r '.dimensions.energy // 0.5' "$AMYGDALA_FILE")
+ANTICIPATION=$(jq -r '.dimensions.anticipation // 0' "$AMYGDALA_FILE")
+TRUST=$(jq -r '.dimensions.trust // 0.5' "$AMYGDALA_FILE")
+RECENT_EMOTIONS=$(jq -c '[.recentEmotions[-5:] // [] | .[] | {label, intensity, trigger}]' "$AMYGDALA_FILE")
 
 vi=$(echo "$VALENCE * 100" | bc | cut -d. -f1)
 ai=$(echo "$AROUSAL * 100" | bc | cut -d. -f1)
